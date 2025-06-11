@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processos Finalizados</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .btn-voltar {
+            background-color: #3498db;
+        }
+        .scrollable-table {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        .text-truncate {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #formPesquisa {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        #inputPesquisa, #filtroDataSaida {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            min-width: 150px;
+        }
+        .filtros {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Processos Finalizados</h1>
+            <div>
+                <a href="/listar" class="btn btn-voltar">Voltar para Processos Ativos</a>
+            </div>
+        </div>
+
+        <div class="filtros">
+            <select id="filtroPrioridade" class="btn" style="background-color: #9b59b6; padding: 8px;">
+                <option value="todas">Todas Prioridades</option>
+                <option value="BAIXA">BAIXA</option>
+                <option value="MÉDIA">MÉDIA</option>
+                <option value="ALTA">ALTA</option>
+                <option value="URGENTE">URGENTE</option>
+            </select>
+
+            <input type="date" id="filtroDataSaida" 
+                   value="{{ data_saida_filtro if data_saida_filtro else '' }}" 
+                   class="btn" style="background-color: #2ecc71; padding: 8px;">
+
+            <form id="formPesquisa" style="display: inline-block; margin-right: 10px;">
+                <input type="text" id="inputPesquisa" placeholder="Pesquisar processos..." 
+                       value="{{ termo_pesquisa if termo_pesquisa else '' }}" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                <button type="submit" class="btn" style="background-color: #3498db;">Pesquisar</button>
+                <button type="button" id="btnLimparPesquisa" class="btn" style="background-color: #95a5a6;">Limpar</button>
+            </form>
+
+            <button type="button" id="btnExportExcel" class="btn" style="background-color: #27ae60;">Exportar para Excel</button>
+        </div>
+        
+        <div class="scrollable-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>N° Processo</th>
+                        <th>Volume</th>
+                        <th>Secretaria</th>
+                        <th>Data Entrada</th>
+                        <th>Data Saída</th>
+                        <th>Destino</th>
+                        <th>Gênero</th>
+                        <th>Espécie</th>
+                        <th>Objeto</th>
+                        <th>Contratada</th>
+                        <th>Prioridade</th>
+                        <th>Técnico</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for processo in processos %}
+                    <tr>
+                        <td>{{ processo.numero_processo }}</td>
+                        <td>{{ processo.volume if processo.volume else '' }}</td>
+                        <td>{{ processo.secretaria }}</td>
+                        <td>{{ processo.data_entrada }}</td>
+                        <td>{{ processo.data_saida }}</td>
+                        <td>{{ processo.destino if processo.destino else '' }}</td>
+                        <td>{{ processo.genero }}</td>
+                        <td>{{ processo.especie }}</td>
+                        <td class="text-truncate" title="{{ processo.objeto }}">{{ processo.objeto }}</td>
+                        <td>{{ processo.contratada if processo.contratada else '' }}</td>
+                        <td>{{ processo.prioridade }}</td>
+                        <td>{{ processo.tecnico if processo.tecnico else '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function applyFilters() {
+            const prioridade = document.getElementById('filtroPrioridade').value;
+            const termo = document.getElementById('inputPesquisa').value.trim();
+            const dataSaida = document.getElementById('filtroDataSaida').value;
+
+            let url = '/finalizados';
+            const params = new URLSearchParams();
+
+            if (prioridade !== 'todas') {
+                params.append('prioridade', prioridade);
+            }
+            if (termo) {
+                params.append('termo', termo);
+            }
+            if (dataSaida) {
+                params.append('data_saida', dataSaida);
+            }
+            
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+            window.location.href = url;
+        }
+
+        
+        document.getElementById('filtroPrioridade').addEventListener('change', applyFilters);
+        document.getElementById('filtroDataSaida').addEventListener('change', applyFilters);
+
+        document.getElementById('formPesquisa').addEventListener('submit', function(e) {
+            e.preventDefault();
+            applyFilters();
+        });
+
+        document.getElementById('btnLimparPesquisa').addEventListener('click', function() {
+            document.getElementById('inputPesquisa').value = '';
+            document.getElementById('filtroDataSaida').value = '';
+            document.getElementById('filtroPrioridade').value = 'todas';
+            applyFilters();
+        });
+
+        
+        document.getElementById('btnExportExcel').addEventListener('click', function() {
+            const dataSaida = document.getElementById('filtroDataSaida').value;
+            const prioridade = document.getElementById('filtroPrioridade').value;
+            const termo = document.getElementById('inputPesquisa').value.trim();
+
+            if (!dataSaida) {
+                alert('Por favor, selecione uma Data de Saída para exportar os processos do dia.');
+                return;
+            }
+
+            let exportUrl = '/exportar_finalizados_excel';
+            const params = new URLSearchParams();
+            
+            
+            params.append('data_saida', dataSaida); 
+
+            if (prioridade !== 'todas') {
+                params.append('prioridade', prioridade);
+            }
+            if (termo) {
+                params.append('termo', termo);
+            }
+            
+            exportUrl += '?' + params.toString();
+            window.location.href = exportUrl; 
+        });
+
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const prioridadeParam = urlParams.get('prioridade');
+            const termoParam = urlParams.get('termo');
+            const dataSaidaParam = urlParams.get('data_saida');
+
+            if (prioridadeParam) {
+                document.getElementById('filtroPrioridade').value = prioridadeParam;
+            }
+            if (termoParam) {
+                document.getElementById('inputPesquisa').value = termoParam;
+            }
+            if (dataSaidaParam) {
+                document.getElementById('filtroDataSaida').value = dataSaidaParam;
+            }
+        });
+    </script>
+</body>
+</html>

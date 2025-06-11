@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Processos Editável</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            
+        }
+        .action-buttons {
+            display: flex; 
+            gap: 5px;     
+            padding: 0; 
+            align-items: center; 
+            justify-content: center;
+        }
+
+
+        .action-buttons .btn {
+            padding: 6px 10px; 
+            font-size: 0.85em; 
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .btn-salvar {
+            background-color: #3498db;
+        }
+        .btn-cancelar {
+            background-color: #e74c3c;
+        }
+        .btn-editar {
+            background-color: #4CAF50;
+        }
+        .editable {
+            background-color: #fffde7;
+            cursor: pointer;
+        }
+        .edit-field {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        textarea.edit-field {
+            min-height: 60px;
+        }
+        .scrollable-table {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        .prazo {
+            font-weight: bold;
+        }
+        #formPesquisa {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        #inputPesquisa {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            min-width: 250px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Processos Cadastrados (Editável)</h1>
+            <div>
+                <button id="btnNovoProcesso" class="btn">Novo Processo</button>
+                <select id="filtroPrioridade" class="btn" style="background-color: #9b59b6; padding: 8px;">
+                    <option value="todas">Todas Prioridades</option>
+                    <option value="BAIXA">BAIXA</option>
+                    <option value="MÉDIA">MÉDIA</option>
+                    <option value="ALTA">ALTA</option>
+                    <option value="URGENTE">URGENTE</option>
+                </select>
+                <a href="/finalizados" class="btn" style="background-color: #9b59b6;">Ver Finalizados</a>
+                
+                <form id="formPesquisa" style="display: inline-block; margin-right: 10px;">
+                    <input type="text" id="inputPesquisa" placeholder="Pesquisar processos..." 
+                           value="{{ termo_pesquisa if termo_pesquisa else '' }}" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                    <button type="submit" class="btn" style="background-color: #3498db;">Pesquisar</button>
+                    <button type="button" id="btnLimparPesquisa" class="btn" style="background-color: #95a5a6;">Limpar</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="scrollable-table">
+            <table id="tabelaProcessos">
+                <thead>
+                    <tr>
+                        <th>N° Processo</th>
+                        <th>Volume</th>
+                        <th>Secretaria</th>
+                        <th>Data Entrada</th>
+                        <th>Hora Entrada</th>
+                        <th>Data Saída</th>
+                        <th>Hora Saída</th>
+                        <th>Prazo</th>
+                        <th>Destino</th>
+                        <th>Gênero</th>
+                        <th>Espécie</th>
+                        <th>Objeto</th>
+                        <th>Contratada</th>
+                        <th>Recorrente</th>
+                        <th>Prioridade</th>
+                        <th>Técnico</th>
+                        <th>Data Análise</th>
+                        <th>N° Despacho</th>
+                        <th>Observação</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for processo in processos %}
+                    <tr data-id="{{ processo.id }}">
+                        <td class="editable" data-field="numero_processo">{{ processo.numero_processo }}</td>
+                        <td class="editable" data-field="volume">{{ processo.volume or '' }}</td>
+                        <td class="editable" data-field="secretaria">{{ processo.secretaria }}</td>
+                        <td class="editable" data-field="data_entrada">{{ processo.data_entrada }}</td>
+                        <td class="editable" data-field="hora_entrada">{{ processo.hora_entrada }}</td>
+                        <td class="editable" data-field="data_saida">{{ processo.data_saida or '' }}</td>
+                        <td class="editable" data-field="hora_saida">{{ processo.hora_saida or '' }}</td>
+                        <td class="prazo">{{ processo.prazo_formatado }}</td>
+                        <td class="editable" data-field="destino">{{ processo.destino or '' }}</td>
+                        <td class="editable" data-field="genero">{{ processo.genero }}</td>
+                        <td class="editable" data-field="especie">{{ processo.especie }}</td>
+                        <td class="editable" data-field="objeto">{{ processo.objeto }}</td>
+                        <td class="editable" data-field="contratada">{{ processo.contratada or '' }}</td>
+                        <td class="editable" data-field="recorrente">{{ processo.recorrente or 'NÃO' }}</td>
+                        <td class="editable" data-field="prioridade">{{ processo.prioridade }}</td>
+                        <td class="editable" data-field="tecnico">{{ processo.tecnico or '' }}</td>
+                        <td class="editable" data-field="data_analise">{{ processo.data_analise or '' }}</td>
+                        <td class="editable" data-field="numero_despacho">{{ processo.numero_despacho or '' }}</td>
+                        <td class="editable" data-field="observacao">{{ processo.observacao or '' }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-editar" onclick="editarProcesso(this)">Editar</button>
+                                <a href="/processo/{{ processo.id }}/historico" class="btn" style="background-color: #6c757d;">Histórico</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let editingRow = null;
+        let originalContent = null;
+
+        function editarProcesso(btn) {
+            if (editingRow) {
+                alert("Já existe uma linha em edição. Por favor, salve ou cancele a edição atual.");
+                return;
+            }
+
+            const row = btn.closest('tr');
+            editingRow = row;
+            originalContent = row.innerHTML; 
+
+            row.querySelectorAll('.editable').forEach(cell => {
+                const field = cell.getAttribute('data-field');
+                const value = cell.textContent.trim();
+                let inputElement;
+
+                
+                if (field === 'objeto' || field === 'observacao') {
+                    inputElement = document.createElement('textarea');
+                    inputElement.className = 'edit-field';
+                    inputElement.value = value;
+                } else if (field === 'secretaria') {
+                    inputElement = document.createElement('select');
+                    inputElement.className = 'edit-field';
+                    const options = [
+                        "Administração, Receita e Tributação", "Agricultura, Abastecimento e Pesca", "Comunicação Social",
+                        "Desenvolvimento Social", "Direitos dos Animais", "Educação, Cultura, Inclusão, Ciência e Tecnologia",
+                        "Esporte, Lazer e Turismo", "Finanças", "Gabinete", "Gestão, Inovação e Tecnologia",
+                        "Governança e Sustentabilidade", "Municipal de Infraestrutura", "Meio Ambiente", "Mulher",
+                        "Transporte e Serviços Públicos", "Obras Públicas", "Planejamento", "Relações Institucionais",
+                        "Saúde", "Segurança e Ordem Pública", "Transparência e Integridade", "Urbanismo"
+                    ];
+                    options.forEach(optionText => {
+                        const option = document.createElement('option');
+                        option.value = optionText;
+                        option.textContent = optionText;
+                        if (optionText === value) {
+                            option.selected = true;
+                        }
+                        inputElement.appendChild(option);
+                    });
+                } else if (field === 'genero') {
+                    inputElement = document.createElement('select');
+                    inputElement.className = 'edit-field';
+                    ['MATERIAL', 'SERVIÇO', 'OUTROS'].forEach(optionText => {
+                        const option = document.createElement('option');
+                        option.value = optionText;
+                        option.textContent = optionText;
+                        if (optionText === value) {
+                            option.selected = true;
+                        }
+                        inputElement.appendChild(option);
+                    });
+                } else if (field === 'especie') {
+                    inputElement = document.createElement('select');
+                    inputElement.className = 'edit-field';
+                    ['ADIANTAMENTO', 'PAGAMENTO', 'TERMO ADITIVO', 'ANÁLISE INICIAL', 'OUTROS'].forEach(optionText => {
+                        const option = document.createElement('option');
+                        option.value = optionText;
+                        option.textContent = optionText;
+                        if (optionText === value) {
+                            option.selected = true;
+                        }
+                        inputElement.appendChild(option);
+                    });
+                } else if (field === 'recorrente') {
+                    inputElement = document.createElement('select');
+                    inputElement.className = 'edit-field';
+                    ['NÃO', 'SIM'].forEach(optionText => {
+                        const option = document.createElement('option');
+                        option.value = optionText;
+                        option.textContent = optionText;
+                        if (optionText === value) {
+                            option.selected = true;
+                        }
+                        inputElement.appendChild(option);
+                    });
+                } else if (field === 'prioridade') {
+                    inputElement = document.createElement('select');
+                    inputElement.className = 'edit-field';
+                    ['BAIXA', 'MÉDIA', 'ALTA', 'URGENTE'].forEach(optionText => {
+                        const option = document.createElement('option');
+                        option.value = optionText;
+                        option.textContent = optionText;
+                        if (optionText === value) {
+                            option.selected = true;
+                        }
+                        inputElement.appendChild(option);
+                    });
+                } else if (field.startsWith('data_')) {
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'date';
+                    inputElement.className = 'edit-field';
+                    inputElement.value = value;
+                } else if (field.startsWith('hora_')) {
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'time';
+                    inputElement.className = 'edit-field';
+                    inputElement.value = value;
+                }
+                else {
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'text';
+                    inputElement.className = 'edit-field';
+                    inputElement.value = value;
+                }
+                
+                cell.textContent = '';
+                cell.appendChild(inputElement);
+            });
+
+          
+            const actionsCell = row.querySelector('td:last-child');
+            actionsCell.innerHTML = `
+                <button class="btn btn-salvar" onclick="salvarProcesso(this)">Salvar</button>
+                <button class="btn btn-cancelar" onclick="cancelarEdicao()">Cancelar</button>
+            `;
+        }
+
+        async function salvarProcesso(btn) {
+            const row = btn.closest('tr');
+            const id = row.getAttribute('data-id');
+            const data = {};
+            let isValid = true;
+
+            row.querySelectorAll('.editable').forEach(cell => {
+                const field = cell.getAttribute('data-field');
+                const input = cell.querySelector('input, select, textarea');
+                if (input) {
+                    if (input.value.trim() === '' && ['numero_processo', 'secretaria', 'data_entrada', 'hora_entrada', 'genero', 'especie', 'objeto', 'prioridade'].includes(field)) {
+                        isValid = false;
+                        alert(`O campo "${field}" é obrigatório.`);
+                        input.style.borderColor = '#e74c3c'; 
+                    } else {
+                        data[field] = input.value.trim() === '' ? null : input.value;
+                        input.style.borderColor = '#ddd';
+                    }
+                }
+            });
+
+            if (!isValid) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/atualizar/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Processo atualizado com sucesso!');
+                   
+                    
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const currentTerm = urlParams.get('termo') || '';
+                    const currentPriority = urlParams.get('prioridade') || document.getElementById('filtroPrioridade').value;
+
+                    let redirectUrl = '/listar';
+                    const params = [];
+                    if (currentTerm) {
+                        params.push(`termo=${encodeURIComponent(currentTerm)}`);
+                    }
+                    if (currentPriority !== 'todas') {
+                        params.push(`prioridade=${currentPriority}`);
+                    }
+                    if (params.length > 0) {
+                        if (currentPriority !== 'todas' && !currentTerm) { 
+                            redirectUrl = `/listar_por_prioridade/${currentPriority}`;
+                        } else if (currentTerm) { 
+                            redirectUrl = `/pesquisar`;
+                        }
+                        redirectUrl += `?${params.join('&')}`;
+                    }
+                    window.location.href = redirectUrl;
+                } else {
+                    alert('Erro ao salvar: ' + result.message);
+                }
+            } catch (error) {
+                alert('Erro na comunicação com o servidor: ' + error.message);
+            } finally {
+                editingRow = null;
+                originalContent = null;
+            }
+        }
+
+        function cancelarEdicao() {
+            if (editingRow && originalContent) {
+                editingRow.innerHTML = originalContent;
+                editingRow = null;
+                originalContent = null;
+            }
+        }
+
+       
+        document.getElementById('btnNovoProcesso').addEventListener('click', () => {
+            window.location.href = '/';
+        });
+
+        
+        document.getElementById('filtroPrioridade').addEventListener('change', function() {
+            const prioridade = this.value;
+            const termo = document.getElementById('inputPesquisa').value.trim(); 
+
+            let url = '';
+            if (prioridade === 'todas') {
+                url = '/listar';
+            } else {
+                url = `/listar_por_prioridade/${prioridade}`;
+            }
+
+            if (termo) { 
+                url += (url.includes('?') ? '&' : '?') + `termo=${encodeURIComponent(termo)}`;
+            }
+            window.location.href = url;
+        });
+
+        
+        document.getElementById('formPesquisa').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const termo = document.getElementById('inputPesquisa').value.trim();
+            const prioridade = document.getElementById('filtroPrioridade').value; 
+            let url = `/pesquisar?termo=${encodeURIComponent(termo)}`;
+            if (prioridade !== 'todas') {
+                url += `&prioridade=${prioridade}`; 
+            }
+            window.location.href = url;
+        });
+
+        
+        document.getElementById('btnLimparPesquisa').addEventListener('click', function() {
+            document.getElementById('inputPesquisa').value = '';
+            const filtro = document.getElementById('filtroPrioridade').value;
+            if (filtro === 'todas') {
+                window.location.href = '/listar';
+            } else {
+                window.location.href = `/listar_por_prioridade/${filtro}`;
+            }
+        });
+
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const prioridadeParam = urlParams.get('prioridade');
+            const termoParam = urlParams.get('termo');
+
+            if (prioridadeParam) {
+                document.getElementById('filtroPrioridade').value = prioridadeParam;
+            } else if ("{{ prioridade_filtro }}" !== "") { 
+                document.getElementById('filtroPrioridade').value = "{{ prioridade_filtro }}";
+            }
+
+            if (termoParam) {
+                document.getElementById('inputPesquisa').value = termoParam;
+            } else if ("{{ termo_pesquisa }}" !== "") { 
+                document.getElementById('inputPesquisa').value = "{{ termo_pesquisa }}";
+            }
+        });
+    </script>
+</body>
+</html>
